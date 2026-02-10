@@ -1084,7 +1084,7 @@ void BulkProcessPendingOrders()
             rejected++;
 
             Console.WriteLine(
-                $"Order {o.OrderId} Rejected (Too Late)"
+                $"Order {o.OrderId} -> Rejected (Too Late)"
             );
         }
 
@@ -1094,7 +1094,7 @@ void BulkProcessPendingOrders()
             preparing++;
 
             Console.WriteLine(
-                $"Order {o.OrderId} → Preparing"
+                $"Order {o.OrderId} -> Preparing"
             );
         }
 
@@ -1181,4 +1181,3 @@ void DisplayTotalOrderAmounts()
     Console.WriteLine($"Final Earnings : ${finalEarnings:F2}");
     Console.WriteLine("==============================\n");
 }
-DisplayTotalOrderAmounts();
