@@ -12,75 +12,27 @@ int restaurantCount = 0;
 Customer[] customers = new Customer[100];
 int customerCount = 0;
 
-Menu[] menus = new Menu[50];
 
 
 // Feature 2 - Droydon Goh
 LoadAllData();
 void LoadAllData()
 {
-
-    string[] restLines = File.ReadAllLines("restaurants.csv");
-
-    for (int i = 1; i < restLines.Length; i++)
-    {
-        if (string.IsNullOrWhiteSpace(restLines[i])) continue;
-
-        string[] p = restLines[i].Split(',');
-
-        Restaurant r = new Restaurant(p[0], p[1], p[2]);
-
-        restaurants[restaurantCount] = r;
-        restaurantCount++;
-    }
-
-
-    for (int i = 0; i < restaurantCount; i++)
-    {
-        Menu m = new Menu("M001", "Main Menu");
-        restaurants[i].AddMenu(m);
-
-        menus[i] = m;
-    }
-
-    string[] foodLines = File.ReadAllLines("fooditems.csv");
-
-    for (int i = 1; i < foodLines.Length; i++)
-    {
-        if (string.IsNullOrWhiteSpace(foodLines[i])) continue;
-
-        string[] p = foodLines[i].Split(',');
-
-        string restId = p[0];
-
-        for (int j = 0; j < restaurantCount; j++)
-        {
-            if (restaurants[j].RestaurantId == restId)
-            {
-                Menu m = menus[j];
-
-                FoodItem f = new FoodItem(
-                    p[1],
-                    p[2],
-                    double.Parse(p[3]),
-                    ""
-                );
-
-                m.AddFoodItem(f);
-                break;
-            }
-        }
-    }
-
-
-
     string[] custLines = File.ReadAllLines("customers.csv");
 
     for (int i = 1; i < custLines.Length; i++)
     {
-        if (string.IsNullOrWhiteSpace(custLines[i])) continue;
+        string line = custLines[i];
 
-        string[] p = custLines[i].Split(',');
+   
+        if (line.Length == 0)
+            continue;
+
+        string[] p = line.Split('\t');
+
+  
+        if (p.Length < 2)
+            continue;
 
         Customer c = new Customer(p[1], p[0]);
 
@@ -93,12 +45,14 @@ void LoadAllData()
 
     for (int i = 1; i < orderLines.Length; i++)
     {
-        if (string.IsNullOrWhiteSpace(orderLines[i])) continue;
-
         string line = orderLines[i];
 
-        int q = line.IndexOf('"');
+        if (line.Length == 0)
+            continue;
+
         string items = "";
+
+        int q = line.IndexOf('"');
 
         if (q != -1)
         {
@@ -109,42 +63,59 @@ void LoadAllData()
 
         string[] p = line.Split(',');
 
+ 
+        if (p.Length < 9)
+            continue;
+
         int id = int.Parse(p[0]);
         string email = p[1];
         string restId = p[2];
 
         DateTime created = DateTime.Parse(p[6]);
         string status = p[8];
+        string address = p[5];
+        string payment = "CC";
 
         Customer cust = null;
         Restaurant rest = null;
 
 
-
+   
         for (int j = 0; j < customerCount; j++)
         {
             if (customers[j].EmailAddress == email)
+            {
                 cust = customers[j];
+                break;
+            }
         }
 
+     
         for (int j = 0; j < restaurantCount; j++)
         {
             if (restaurants[j].RestaurantId == restId)
+            {
                 rest = restaurants[j];
+                break;
+            }
         }
 
-        if (cust == null || rest == null) continue;
+        if (cust == null || rest == null)
+            continue;
 
-        DateTime deliveryDT = DateTime.Parse(p[3] + " " + p[4]);
+        Order o = new Order(
+            id,
+            created,
+            status,
+            address,
+            payment
+        );
 
-        Order o = new Order(id,created,status,p[5],"CC");
-
-        o.DeliveryDateTime = deliveryDT;
-
+        o.Customer = cust;
+        o.Restaurant = rest;
 
 
-
-        if (items != "")
+        if (items.Length > 0)
         {
             string[] list = items.Split('|');
 
@@ -155,10 +126,12 @@ void LoadAllData()
             {
                 string[] x = it.Split(',');
 
+                if (x.Length < 2)
+                    continue;
+
                 int qty = int.Parse(x[1]);
 
                 OrderedFoodItem of = new OrderedFoodItem("Unknown","",perItem,"",qty);
-
 
                 o.AddOrderedFoodItem(of);
             }
@@ -169,5 +142,5 @@ void LoadAllData()
         cust.AddOrder(o);
     }
 
-    Console.WriteLine("Feature 2: All data loaded.");
+    Console.WriteLine("Customers and Orders loaded successfully");
 }
