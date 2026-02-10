@@ -9,9 +9,13 @@ using S10272461_S10273422_PRG2Assignment;
 Customer[] customers = new Customer[100];
 int customerCount = 0;
 
+Restaurant[] restaurant = new Restaurant[50];
+int restaurantCount = 0;
+
 List<Restaurant> restaurants = new List<Restaurant>();
 
 // Feature 1: Load Restaurants - Fan Ming
+LoadRestaurants();
 void LoadRestaurants()
 {
     try
@@ -93,9 +97,9 @@ void LoadFoodItems()
 }
 
 
-// Feature 2 - Droydon Goh
-LoadAllData();
-void LoadAllData()
+// Feature 2: Load Customers - Droydon Goh
+LoadCustomer();
+void LoadCustomer()
 {
     string[] custLines = File.ReadAllLines("customers.csv");
 
@@ -103,13 +107,13 @@ void LoadAllData()
     {
         string line = custLines[i];
 
-   
+
         if (line.Length == 0)
             continue;
 
         string[] p = line.Split('\t');
 
-  
+
         if (p.Length < 2)
             continue;
 
@@ -118,8 +122,12 @@ void LoadAllData()
         customers[customerCount] = c;
         customerCount++;
     }
+}
 
-
+// Feature 2: Load Orders - Droydon Goh
+LoadOrder();
+void LoadOrder()
+{ 
     string[] orderLines = File.ReadAllLines("orders.csv");
 
     for (int i = 1; i < orderLines.Length; i++)
