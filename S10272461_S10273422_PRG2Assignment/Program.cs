@@ -1086,3 +1086,108 @@ void DeleteOrder()
         }
     }
 }
+
+// Advanced Features 1: Bulk Process Pending Orders - Droydon Goh
+BulkProcessPendingOrders();
+void BulkProcessPendingOrders()
+{
+    Console.WriteLine("\n===== Bulk Processing Pending Orders (Today) =====");
+
+    DateTime today = DateTime.Today;
+
+    List<Order> pendingToday = new List<Order>();
+
+    // -----------------------------
+    // Find all pending orders today
+    // -----------------------------
+    foreach (Customer c in customers)
+    {
+        if (c == null) continue;
+
+        foreach (Order o in c.GetOrders())
+        {
+            if (o.OrderStatus == "Pending" &&
+                o.DeliveryDateTime.Date == today)
+            {
+                pendingToday.Add(o);
+            }
+        }
+    }
+
+    // -----------------------------
+    // Display total pending
+    // -----------------------------
+    Console.WriteLine($"Total Pending Orders Today: {pendingToday.Count}");
+
+    if (pendingToday.Count == 0)
+    {
+        Console.WriteLine("No pending orders for today.");
+        return;
+    }
+
+    int processed = 0;
+    int preparing = 0;
+    int rejected = 0;
+
+    DateTime now = DateTime.Now;
+
+    // -----------------------------
+    // Process each order
+    // -----------------------------
+    foreach (Order o in pendingToday)
+    {
+        TimeSpan diff = o.DeliveryDateTime - now;
+
+        // Less than 1 hour → Reject
+        if (diff.TotalMinutes < 60)
+        {
+            o.OrderStatus = "Rejected";
+            rejected++;
+
+            Console.WriteLine(
+                $"Order {o.OrderId} → Rejected (Too Late)"
+            );
+        }
+        // Otherwise → Preparing
+        else
+        {
+            o.OrderStatus = "Preparing";
+            preparing++;
+
+            Console.WriteLine(
+                $"Order {o.OrderId} → Preparing"
+            );
+        }
+
+        processed++;
+    }
+
+    // -----------------------------
+    // Summary
+    // -----------------------------
+    Console.WriteLine("\n===== Summary =====");
+    Console.WriteLine($"Orders Processed : {processed}");
+    Console.WriteLine($"Preparing        : {preparing}");
+    Console.WriteLine($"Rejected         : {rejected}");
+
+    int totalOrders = 0;
+
+    foreach (Customer c in customers)
+    {
+        if (c == null) continue;
+        totalOrders += c.GetOrders().Count;
+    }
+
+    double percent = 0;
+
+    if (totalOrders > 0)
+    {
+        percent = (double)processed / totalOrders * 100;
+    }
+
+    Console.WriteLine(
+        $"Auto-Processed % : {percent:F2}%"
+    );
+
+    Console.WriteLine("==============================");
+}
