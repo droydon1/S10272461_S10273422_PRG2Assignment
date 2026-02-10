@@ -4,6 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
+//==========================================================
+// Student Number : S10272461B
+// Student Name : Droydon Goh
+// Partner Name : Fan Ming
+//==========================================================
+
 namespace S10272461_S10273422_PRG2Assignment
 {
 	internal class FoodItem

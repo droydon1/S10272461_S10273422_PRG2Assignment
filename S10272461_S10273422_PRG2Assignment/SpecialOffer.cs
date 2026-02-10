@@ -4,6 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//==========================================================
+// Student Number : S10273422H
+// Student Name : FanMing
+// Partner Name : Droydon Goh
+//==========================================================
+
 namespace S10272461_S10273422_PRG2Assignment
 {
     internal class SpecialOffer
