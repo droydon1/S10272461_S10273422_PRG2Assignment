@@ -6,13 +6,11 @@
 
 using S10272461_S10273422_PRG2Assignment;
 
+List<Restaurant> restaurants = new List<Restaurant>();
+List<Menu> restaurantMenus = new List<Menu>();
+
 Customer[] customers = new Customer[100];
 int customerCount = 0;
-
-Restaurant[] restaurant = new Restaurant[50];
-int restaurantCount = 0;
-
-List<Restaurant> restaurants = new List<Restaurant>();
 
 // Feature 1: Load Restaurants - Fan Ming
 LoadRestaurants();
@@ -22,215 +20,245 @@ void LoadRestaurants()
     {
         string[] restLines = File.ReadAllLines("restaurants.csv");
 
-        for (int i = 1; i < restLines.Length; i++) // skip header
+        for (int i = 1; i < restLines.Length; i++)
         {
-            try
-            {
-                string[] p = restLines[i].Split(',');
-                string id = p[0];
-                string name = p[1];
-                string email = p[2];
+            if (restLines[i].Length == 0)
+                continue;
 
-                Restaurant r = new Restaurant(id, name, email);
+            string[] p = restLines[i].Split(',');
 
-                // Create one default menu for each restaurant
-                Menu defaultMenu = new Menu("Default", "Default Menu");
-                r.AddMenu(defaultMenu);
+            Restaurant r = new Restaurant(p[0], p[1], p[2]);
 
-                restaurants.Add(r);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error parsing restaurant line {i + 1}: {ex.Message}");
-            }
+            // Create default menu
+            Menu m = new Menu("Main", "Main Menu");
+
+            r.AddMenu(m);
+
+            restaurants.Add(r);
+            restaurantMenus.Add(m);   // SAVE MENU HERE
         }
 
-        Console.WriteLine($"Loaded {restaurants.Count} restaurants.");
+        Console.WriteLine("Restaurants loaded.");
     }
     catch (Exception ex)
     {
-        Console.WriteLine("Error reading restaurants.csv: " + ex.Message);
+        Console.WriteLine("Error loading restaurants: " + ex.Message);
     }
 }
 
+
 // Feature 1: Load Food Items - Fan Ming
+LoadFoodItems();
 void LoadFoodItems()
 {
     try
     {
         string[] foodLines = File.ReadAllLines("fooditems.csv");
 
-        for (int i = 1; i < foodLines.Length; i++) // skip header
+        for (int i = 1; i < foodLines.Length; i++)
         {
-            try
+            if (foodLines[i].Length == 0)
+                continue;
+
+            string[] p = foodLines[i].Split(',');
+
+            string restId = p[0];
+
+            FoodItem f = new FoodItem(
+                p[1],
+                p[2],
+                double.Parse(p[3]),
+                ""
+            );
+
+            // Find restaurant
+            for (int j = 0; j < restaurants.Count; j++)
             {
-                string[] p = foodLines[i].Split(',');
-                string restId = p[0];
-                string itemName = p[1];
-                string desc = p[2];
-                double price = Convert.ToDouble(p[3]);
-
-                FoodItem f = new FoodItem(itemName, desc, price, "None"); // simple default customize
-
-                // Find the restaurant and add food item to its first menu
-                for (int j = 0; j < restaurants.Count; j++)
+                if (restaurants[j].RestaurantId == restId)
                 {
-                    if (restaurants[j].RestaurantId == restId)
-                    {
-                        restaurants[j].Menus[0].AddFoodItem(f);
-                        break; // found the restaurant, no need to continue loop
-                    }
+                    // Use stored menu
+                    restaurantMenus[j].AddFoodItem(f);
+                    break;
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error parsing food item line {i + 1}: {ex.Message}");
             }
         }
 
-        Console.WriteLine("Food items loaded and assigned to restaurants.");
+        Console.WriteLine("Food items loaded.");
     }
     catch (Exception ex)
     {
-        Console.WriteLine("Error reading fooditems.csv: " + ex.Message);
+        Console.WriteLine("Error loading food items: " + ex.Message);
     }
 }
-
 
 // Feature 2: Load Customers - Droydon Goh
-LoadCustomer();
-void LoadCustomer()
+LoadCustomers();
+void LoadCustomers()
 {
-    string[] custLines = File.ReadAllLines("customers.csv");
-
-    for (int i = 1; i < custLines.Length; i++)
+    try
     {
-        string line = custLines[i];
+        string[] custLines = File.ReadAllLines("customers.csv");
 
+        for (int i = 1; i < custLines.Length; i++)
+        {
+            if (custLines[i].Length == 0)
+                continue;
 
-        if (line.Length == 0)
-            continue;
+            string[] p = custLines[i].Split('\t');
 
-        string[] p = line.Split('\t');
+            if (p.Length < 2)
+                continue;
 
+            Customer c = new Customer(p[1], p[0]);
 
-        if (p.Length < 2)
-            continue;
+            customers[customerCount] = c;
+            customerCount++;
+        }
 
-        Customer c = new Customer(p[1], p[0]);
-
-        customers[customerCount] = c;
-        customerCount++;
+        Console.WriteLine("Customers loaded.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error loading customers: " + ex.Message);
     }
 }
-// Call the methods
-LoadRestaurants();
-LoadFoodItems();
 
 // Feature 2: Load Orders - Droydon Goh
-LoadOrder();
-void LoadOrder()
-{ 
-    string[] orderLines = File.ReadAllLines("orders.csv");
-
-    for (int i = 1; i < orderLines.Length; i++)
+LoadOrders();
+void LoadOrders()
+{
+    try
     {
-        string line = orderLines[i];
+        string[] lines = File.ReadAllLines("orders.csv");
 
-        if (line.Length == 0)
-            continue;
-
-        string items = "";
-
-        int q = line.IndexOf('"');
-
-        if (q != -1)
+        for (int i = 1; i < lines.Length; i++)
         {
-            items = line.Substring(q + 1);
-            items = items.Substring(0, items.Length - 1);
-            line = line.Substring(0, q - 1);
-        }
+            if (lines[i].Length == 0)
+                continue;
 
-        string[] p = line.Split(',');
+            string line = lines[i];
+            string items = "";
 
- 
-        if (p.Length < 9)
-            continue;
+            int q = line.IndexOf('"');
 
-        int id = int.Parse(p[0]);
-        string email = p[1];
-        string restId = p[2];
-
-        DateTime created = DateTime.Parse(p[6]);
-        string status = p[8];
-        string address = p[5];
-        string payment = "CC";
-
-        Customer cust = null;
-        Restaurant rest = null;
-
-
-   
-        for (int j = 0; j < customerCount; j++)
-        {
-            if (customers[j].EmailAddress == email)
+            if (q != -1)
             {
-                cust = customers[j];
-                break;
-            }
-        }
+                items = line.Substring(q + 1);
+                items = items.Substring(0, items.Length - 1);
 
-     
-        for (int j = 0; j < restaurantCount; j++)
-        {
-            if (restaurants[j].RestaurantId == restId)
+                line = line.Substring(0, q - 1);
+            }
+
+            string[] p = line.Split(',');
+
+            if (p.Length < 9)
+                continue;
+
+            int id = int.Parse(p[0]);
+            string email = p[1];
+            string restId = p[2];
+
+            DateTime created = DateTime.Parse(p[6]);
+            string status = p[8];
+            string address = p[5];
+            string payment = "CC";
+
+            Customer cust = null;
+            Restaurant rest = null;
+
+            // Find customer
+            for (int j = 0; j < customerCount; j++)
             {
-                rest = restaurants[j];
-                break;
+                if (customers[j].EmailAddress == email)
+                {
+                    cust = customers[j];
+                    break;
+                }
             }
-        }
 
-        if (cust == null || rest == null)
-            continue;
-
-        Order o = new Order(
-            id,
-            created,
-            status,
-            address,
-            payment
-        );
-
-        o.Customer = cust;
-        o.Restaurant = rest;
-
-
-        if (items.Length > 0)
-        {
-            string[] list = items.Split('|');
-
-            double total = double.Parse(p[7]);
-            double perItem = total / list.Length;
-
-            foreach (string it in list)
+            // Find restaurant
+            for (int j = 0; j < restaurants.Count; j++)
             {
-                string[] x = it.Split(',');
-
-                if (x.Length < 2)
-                    continue;
-
-                int qty = int.Parse(x[1]);
-
-                OrderedFoodItem of = new OrderedFoodItem("Unknown","",perItem,"",qty);
-
-                o.AddOrderedFoodItem(of);
+                if (restaurants[j].RestaurantId == restId)
+                {
+                    rest = restaurants[j];
+                    break;
+                }
             }
+
+            if (cust == null || rest == null)
+                continue;
+
+            Order o = new Order(
+                id,
+                created,
+                status,
+                address,
+                payment
+            );
+
+            o.Customer = cust;
+            o.Restaurant = rest;
+
+            // Load items
+            if (items.Length > 0)
+            {
+                string[] list = items.Split('|');
+
+                double total = double.Parse(p[7]);
+                double perItem = total / list.Length;
+
+                foreach (string it in list)
+                {
+                    string[] x = it.Split(',');
+
+                    if (x.Length < 2)
+                        continue;
+
+                    int qty = int.Parse(x[1]);
+
+                    OrderedFoodItem of =
+                        new OrderedFoodItem(
+                            "Unknown",
+                            "",
+                            perItem,
+                            "",
+                            qty
+                        );
+
+                    o.AddOrderedFoodItem(of);
+                }
+            }
+
+            o.CalculateOrderTotal();
+
+            cust.AddOrder(o);
         }
 
-        o.CalculateOrderTotal();
-
-        cust.AddOrder(o);
+        Console.WriteLine("Orders loaded.");
     }
-
-    Console.WriteLine("Customers and Orders loaded successfully");
+    catch
+    {
+        Console.WriteLine("Cannot read orders.csv");
+    }
 }
+
+// Feature 3: List Restaurant and Menus - Droydon Goh
+DisplayRestaurantsAndMenus();
+void DisplayRestaurantsAndMenus()
+{
+    Console.WriteLine("===== Restaurants and Menus =====");
+
+    foreach (Restaurant r in restaurants)
+    {
+        Console.WriteLine("----------------------------");
+        Console.WriteLine("Restaurant ID   : " + r.RestaurantId);
+        Console.WriteLine("Restaurant Name : " + r.RestaurantName);
+        Console.WriteLine("Email           : " + r.RestaurantEmail);
+        Console.WriteLine("----------------------------");
+
+        r.DisplayMenu();
+        Console.WriteLine();
+    }
+}
+
