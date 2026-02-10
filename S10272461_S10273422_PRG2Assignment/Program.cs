@@ -313,7 +313,7 @@ void ListAllOrders()
                     c.CustomerName,
                     o.Restaurant.RestaurantName,
                     o.OrderDateTime.ToString("dd/MM/yyyy HH:mm"),
-                    o.CalculateOrderTotal(),
+                    o.OrderTotal,
                     o.OrderStatus
                 );
             }
