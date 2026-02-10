@@ -13,7 +13,7 @@ namespace S10272461_S10273422_PRG2Assignment
         public string RestaurantEmail { get; set; }
         private List<Menu> Menus { get; set; } = new List<Menu>();
         private List<SpecialOffer> Offers { get; set; } = new List<SpecialOffer>();
-        private List<Order> Orders { get; set; } = new List<Order>();
+        private Queue<Order> Orders { get; set; } = new Queue<Order>();
         // constructor
         public Restaurant(string id, string name, string email)
         {
