@@ -15,7 +15,6 @@ int restaurantCount = 0;
 List<Restaurant> restaurants = new List<Restaurant>();
 
 // Feature 1: Load Restaurants - Fan Ming
-LoadRestaurants();
 void LoadRestaurants()
 {
     try
