@@ -234,10 +234,9 @@ void LoadOrders()
                 }
             }
 
-            // Optional: keep calculated total consistent with CSV total
-            // (If your CalculateOrderTotal uses item prices 0, it becomes 0)
-            // So DON'T overwrite OrderTotal if your item prices are 0.
-            // o.CalculateOrderTotal();
+            o.OrderTotal = double.Parse(p[7]);
+
+
 
             cust.AddOrder(o);
             orderCount++;
