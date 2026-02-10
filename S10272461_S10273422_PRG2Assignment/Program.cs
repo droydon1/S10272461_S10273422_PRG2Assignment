@@ -13,7 +13,6 @@ Customer[] customers = new Customer[100];
 int customerCount = 0;
 
 // Feature 1: Load Restaurants - Fan Ming
-LoadRestaurants();
 void LoadRestaurants()
 {
     try
