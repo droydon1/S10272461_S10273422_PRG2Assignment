@@ -5,87 +5,62 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public class Menu
-{
-    public string MenuId { get; set; }
-    public string MenuName { get; set; }
-    private FoodItem[] foodItems;
-    private int itemCount;
-
-    public Menu(string menuId, string menuName)
+internal class Menu
     {
-        MenuId = menuId;
-        MenuName = menuName;
-        foodItems = new FoodItem[100];
-        itemCount = 0;
-    }
+        private string menuId;
 
-    public void AddFoodItem(FoodItem foodItem)
-    {
-        if (itemCount < foodItems.Length)
+        public string MenuId
         {
-            foodItems[itemCount] = foodItem;
-            itemCount++;
-            Console.WriteLine("Food item added successfully!");
+            get { return menuId; }
+            set { menuId = value; }
         }
-        else
-        {
-            Console.WriteLine("Menu is full! Cannot add more items.");
-        }
-    }
 
-    public bool RemoveFoodItem(FoodItem foodItem)
-    {
-        for (int i = 0; i < itemCount; i++)
+        private string menuName;
+
+        public string MenuName
         {
-            if (foodItems[i] == foodItem)
+            get { return menuName; }
+            set { menuName = value; }
+        }
+
+        List<FoodItem> foodItems = new List<FoodItem>();
+
+        public Menu(string menuId, string menuName)
+        {
+            this.menuId = menuId;
+            this.menuName = menuName;
+        }
+        
+        public void AddFoodItem(FoodItem item)
+        {
+            foodItems.Add(item);
+        }
+        public bool RemoveFoodItem(FoodItem item)
+        {
+            return foodItems.Remove(item);
+        }
+        public void DisplayFoodItems()
+        {
+            Console.WriteLine($"Menu: {MenuName}");
+            if (foodItems.Count == 0)
             {
-                for (int j = i; j < itemCount - 1; j++)
-                {
-                    foodItems[j] = foodItems[j + 1];
-                }
-                foodItems[itemCount - 1] = null;
-                itemCount--;
-                Console.WriteLine("Food item removed successfully!");
-                return true;
+                Console.WriteLine("  No food items.");
+                return;
+            }
+            foreach (var item in foodItems)
+            {
+                Console.WriteLine("  - " + item.ToString());
             }
         }
-        Console.WriteLine("Food item not found!");
-        return false;
-    }
+        public override string ToString()
+        {
+            return $"Menu: {menuName} (ID: {menuId}) - Total Items: {foodItems.Count}";
 
-    public void DisplayFoodItems()
-    {
-        Console.WriteLine("Menu: " + MenuName);
-        if (itemCount == 0)
-        {
-            Console.WriteLine("No items in this menu.");
-            return;
         }
-        for (int i = 0; i < itemCount; i++)
+
+        public List<FoodItem> GetFoodItems()
         {
-            Console.WriteLine((i + 1) + ". " + foodItems[i]);
+            return foodItems;
         }
     }
-
-    public FoodItem[] GetFoodItems()
-    {
-        FoodItem[] items = new FoodItem[itemCount];
-        for (int i = 0; i < itemCount; i++)
-        {
-            items[i] = foodItems[i];
-        }
-        return items;
-    }
-
-    public int GetItemCount()
-    {
-        return itemCount;
-    }
-
-    public override string ToString()
-    {
-        return $"Menu {{ MenuId='{MenuId}', MenuName='{MenuName}', ItemCount={itemCount} }}";
-    }
-}
 

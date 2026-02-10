@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace S10272461_S10273422_PRG2Assignment
 {
-    public class FoodItem
+	internal class FoodItem
     {
         private string itemName;
 
@@ -15,6 +15,7 @@ namespace S10272461_S10273422_PRG2Assignment
             get { return itemName; }
             set { itemName = value; }
         }
+
         private string itemDesc;
 
         public string ItemDesc
@@ -22,6 +23,7 @@ namespace S10272461_S10273422_PRG2Assignment
             get { return itemDesc; }
             set { itemDesc = value; }
         }
+
         private double itemPrice;
 
         public double ItemPrice
@@ -32,25 +34,23 @@ namespace S10272461_S10273422_PRG2Assignment
 
         private string customize;
 
-        public string Customize
+        public string Customzie
         {
             get { return customize; }
             set { customize = value; }
         }
 
-        public FoodItem(string itemName, string itemDesc, double itemPrice, string customize)
+        public FoodItem(string name, string desc, double price, string customize)
         {
-            this.itemName = itemName;
-            this.itemDesc = itemDesc;
-            this.itemPrice = itemPrice;
+            this.itemName = name;
+            this.itemDesc = desc;
+            this.itemPrice = price;
             this.customize = customize;
-
         }
 
         public override string ToString()
         {
-            return itemName + ": " + itemDesc + " - $" + itemPrice.ToString("0.00");
+            return $"{itemName} - {itemDesc} - ${itemPrice} - Customization: {customize}";
         }
-
     }
 }
