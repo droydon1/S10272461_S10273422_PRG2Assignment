@@ -326,7 +326,7 @@ void ListAllOrders()
 
 // Feature 5: Create New Order - Droydon
 
-// Feature 5: Create New Order
+
 void CreateNewOrder()
 {
     Console.WriteLine("\n===== Create New Order =====");
@@ -705,3 +705,262 @@ void ProcessOrders()
     Console.WriteLine("\n All orders processed.");
 }
 
+// Feature 7: Modify order - Droydon Goh
+
+void ModifyOrder()
+{
+    Console.WriteLine("\n===== Modify Order =====");
+
+    // -----------------------------
+    // Get Customer
+    // -----------------------------
+    Customer cust = null;
+
+    while (cust == null)
+    {
+        Console.Write("Enter Customer Email: ");
+        string email = Console.ReadLine().Trim();
+
+        for (int i = 0; i < customerCount; i++)
+        {
+            if (customers[i] != null &&
+                customers[i].EmailAddress == email)
+            {
+                cust = customers[i];
+                break;
+            }
+        }
+
+        if (cust == null)
+            Console.WriteLine("❌ Customer not found. Try again.");
+    }
+
+
+    // -----------------------------
+    // Show Pending Orders
+    // -----------------------------
+    List<Order> pending = new List<Order>();
+
+    Console.WriteLine("\nPending Orders:");
+
+    foreach (Order o in cust.GetOrders())
+    {
+        if (o.OrderStatus == "Pending")
+        {
+            Console.WriteLine(o.OrderId);
+            pending.Add(o);
+        }
+    }
+
+    if (pending.Count == 0)
+    {
+        Console.WriteLine("No pending orders to modify.");
+        return;
+    }
+
+
+    // -----------------------------
+    // Select Order
+    // -----------------------------
+    Order selected = null;
+
+    while (selected == null)
+    {
+        Console.Write("Enter Order ID: ");
+        int id;
+
+        if (!int.TryParse(Console.ReadLine(), out id))
+        {
+            Console.WriteLine("❌ Invalid number.");
+            continue;
+        }
+
+        foreach (Order o in pending)
+        {
+            if (o.OrderId == id)
+            {
+                selected = o;
+                break;
+            }
+        }
+
+        if (selected == null)
+            Console.WriteLine("❌ Order not found.");
+    }
+
+
+    // -----------------------------
+    // Show Order Details
+    // -----------------------------
+    Console.WriteLine("\nOrder Items:");
+
+    int idx = 1;
+    foreach (OrderedFoodItem item in selected.GetOrderedItems())
+    {
+        Console.WriteLine($"{idx}. {item.ItemName} - {item.QtyOrdered}");
+        idx++;
+    }
+
+    Console.WriteLine("\nAddress:");
+    Console.WriteLine(selected.DeliveryAddress);
+
+    Console.WriteLine("\nDelivery Date/Time:");
+    Console.WriteLine(selected.DeliveryDateTime.ToString("dd/MM/yyyy HH:mm"));
+
+
+    // -----------------------------
+    // Modify Menu
+    // -----------------------------
+    Console.WriteLine("\nModify:");
+    Console.WriteLine("[1] Items");
+    Console.WriteLine("[2] Address");
+    Console.WriteLine("[3] Delivery Time");
+
+    int choice;
+
+    while (true)
+    {
+        Console.Write("Enter choice: ");
+
+        if (int.TryParse(Console.ReadLine(), out choice) &&
+            choice >= 1 && choice <= 3)
+            break;
+
+        Console.WriteLine("❌ Invalid choice.");
+    }
+
+
+    double oldTotal = selected.OrderTotal;
+
+
+    // -----------------------------
+    // Modify Items
+    // -----------------------------
+    if (choice == 1)
+    {
+        selected.GetOrderedItems().Clear();
+
+        Console.WriteLine("\nRe-enter items:");
+
+        // Show menu
+        Menu menu = restaurantMenus[restaurants.IndexOf(selected.Restaurant)];
+        List<FoodItem> foods = menu.GetFoodItems();
+
+        for (int i = 0; i < foods.Count; i++)
+        {
+            Console.WriteLine($"{i + 1}. {foods[i].ItemName} - ${foods[i].ItemPrice:F2}");
+        }
+
+        while (true)
+        {
+            Console.Write("\nEnter item number (0 to finish): ");
+            int num = int.Parse(Console.ReadLine());
+
+            if (num == 0)
+                break;
+
+            if (num < 1 || num > foods.Count)
+            {
+                Console.WriteLine("❌ Invalid item.");
+                continue;
+            }
+
+            Console.Write("Enter quantity: ");
+            int qty = int.Parse(Console.ReadLine());
+
+            if (qty <= 0)
+            {
+                Console.WriteLine("❌ Invalid quantity.");
+                continue;
+            }
+
+            FoodItem f = foods[num - 1];
+
+            OrderedFoodItem of =
+                new OrderedFoodItem(
+                    f.ItemName,
+                    f.ItemDesc,
+                    f.ItemPrice,
+                    "",
+                    qty
+                );
+
+            selected.AddOrderedFoodItem(of);
+        }
+    }
+
+
+    // -----------------------------
+    // Modify Address
+    // -----------------------------
+    else if (choice == 2)
+    {
+        Console.Write("Enter new Address: ");
+        selected.DeliveryAddress = Console.ReadLine();
+
+        Console.WriteLine("✅ Address updated.");
+    }
+
+
+    // -----------------------------
+    // Modify Time
+    // -----------------------------
+    else if (choice == 3)
+    {
+        while (true)
+        {
+            try
+            {
+                Console.Write("Enter new Delivery Time (HH:mm): ");
+                string t = Console.ReadLine();
+
+                DateTime newDT = DateTime.Parse(
+                    selected.DeliveryDateTime.ToString("dd/MM/yyyy") + " " + t
+                );
+
+                selected.DeliveryDateTime = newDT;
+
+                Console.WriteLine($"✅ New Delivery Time: {t}");
+                break;
+            }
+            catch
+            {
+                Console.WriteLine("❌ Invalid time format.");
+            }
+        }
+    }
+
+
+    // -----------------------------
+    // Recalculate Total
+    // -----------------------------
+    double newTotal = selected.CalculateOrderTotal();
+    selected.OrderTotal = newTotal;
+
+
+    // -----------------------------
+    // Payment if Increased
+    // -----------------------------
+    if (newTotal > oldTotal)
+    {
+        Console.WriteLine($"\nOld Total: ${oldTotal:F2}");
+        Console.WriteLine($"New Total: ${newTotal:F2}");
+
+        Console.Write("Additional payment required. Pay now? (Y/N): ");
+        string pay = Console.ReadLine().ToUpper();
+
+        if (pay != "Y")
+        {
+            Console.WriteLine("❌ Update cancelled.");
+            return;
+        }
+
+        Console.WriteLine("✅ Payment received.");
+    }
+
+
+    // -----------------------------
+    // Done
+    // -----------------------------
+    Console.WriteLine($"\n✅ Order {selected.OrderId} updated successfully!");
+}
