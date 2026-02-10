@@ -325,7 +325,7 @@ void ListAllOrders()
 }
 
 // Feature 5: Create New Order - Droydon
-CreateNewOrder();
+
 // Feature 5: Create New Order
 void CreateNewOrder()
 {
@@ -581,3 +581,127 @@ void CreateNewOrder()
     // -----------------------------
     Console.WriteLine($"\n✅ Order {order.OrderId} created successfully! Status: Pending");
 }
+
+// Feature 6: Process an Order - Fan Ming
+void ProcessOrders()
+{
+    Console.WriteLine("\n===== Process Orders =====");
+
+    Console.Write("Enter Restaurant ID: ");
+    string restId = Console.ReadLine().Trim();
+
+    // Find restaurant
+    Restaurant rest = null;
+    foreach (Restaurant r in restaurants)
+    {
+        if (r.RestaurantId == restId)
+        {
+            rest = r;
+            break;
+        }
+    }
+
+    if (rest == null)
+    {
+        Console.WriteLine(" Restaurant not found.");
+        return;
+    }
+
+    // Gather all orders for this restaurant
+    List<Order> orderQueue = new List<Order>();
+
+    foreach (Customer c in customers)
+    {
+        if (c == null) continue;
+
+        foreach (Order o in c.GetOrders())
+        {
+            if (o.Restaurant.RestaurantId == restId)
+            {
+                orderQueue.Add(o);
+            }
+        }
+    }
+
+    if (orderQueue.Count == 0)
+    {
+        Console.WriteLine("No orders to process for this restaurant.");
+        return;
+    }
+
+    // Loop through orders
+    foreach (Order o in orderQueue)
+    {
+        Console.WriteLine("\n---------------------------");
+        Console.WriteLine($"Order {o.OrderId}:");
+        Console.WriteLine($"Customer: {o.Customer.CustomerName}");
+        Console.WriteLine("Ordered Items:");
+        foreach (OrderedFoodItem item in o.GetOrderedItems())
+        {
+            Console.WriteLine($"{item.ItemName} - {item.QtyOrdered}");
+        }
+        Console.WriteLine($"Delivery date/time: {o.DeliveryDateTime:dd/MM/yyyy HH:mm}");
+        Console.WriteLine($"Total Amount: ${o.OrderTotal:F2}");
+        Console.WriteLine($"Order Status: {o.OrderStatus}");
+
+        // Prompt for action
+        while (true)
+        {
+            Console.Write("[C]onfirm / [R]eject / [S]kip / [D]eliver: ");
+            string input = Console.ReadLine().Trim().ToUpper();
+
+            if (input == "C")
+            {
+                if (o.OrderStatus == "Pending")
+                {
+                    o.OrderStatus = "Preparing";
+                    Console.WriteLine($" Order {o.OrderId} confirmed. Status: Preparing");
+                }
+                else
+                {
+                    Console.WriteLine($" Cannot confirm. Current status: {o.OrderStatus}");
+                }
+                break;
+            }
+            else if (input == "R")
+            {
+                if (o.OrderStatus == "Pending")
+                {
+                    o.OrderStatus = "Rejected";
+                    Console.WriteLine($" Order {o.OrderId} rejected. Refund initiated.");
+                    // You could add o to a refund stack if needed
+                }
+                else
+                {
+                    Console.WriteLine($" Cannot reject. Current status: {o.OrderStatus}");
+                }
+                break;
+            }
+            else if (input == "S")
+            {
+                Console.WriteLine($" Skipping Order {o.OrderId}");
+                break;
+            }
+            else if (input == "D")
+            {
+                if (o.OrderStatus == "Preparing")
+                {
+                    o.OrderStatus = "Delivered";
+                    Console.WriteLine($" Order {o.OrderId} delivered.");
+                }
+                else
+                {
+                    Console.WriteLine($" Cannot deliver. Current status: {o.OrderStatus}");
+                }
+                break;
+            }
+            else
+            {
+                Console.WriteLine(" Invalid input. Please enter C, R, S, or D.");
+            }
+        }
+    }
+
+    Console.WriteLine("\n All orders processed.");
+}
+
