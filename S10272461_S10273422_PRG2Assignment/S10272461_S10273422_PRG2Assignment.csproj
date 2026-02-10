@@ -8,6 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Customer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Customer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="customers.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
