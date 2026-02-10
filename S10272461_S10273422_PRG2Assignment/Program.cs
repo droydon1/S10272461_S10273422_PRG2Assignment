@@ -123,6 +123,9 @@ void LoadCustomer()
         customerCount++;
     }
 }
+// Call the methods
+LoadRestaurants();
+LoadFoodItems();
 
 // Feature 2: Load Orders - Droydon Goh
 LoadOrder();
