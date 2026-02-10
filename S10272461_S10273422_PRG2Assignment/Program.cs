@@ -1091,103 +1091,118 @@ void DeleteOrder()
 BulkProcessPendingOrders();
 void BulkProcessPendingOrders()
 {
-    Console.WriteLine("\n===== Bulk Processing Pending Orders (Today) =====");
-
-    DateTime today = DateTime.Today;
-
-    List<Order> pendingToday = new List<Order>();
+    Console.WriteLine("\n===== Bulk Process Pending Orders =====");
 
     // -----------------------------
-    // Find all pending orders today
+    // Get Date
     // -----------------------------
+    DateTime selectedDate;
+
+    while (true)
+    {
+        Console.Write("Enter date (dd/MM/yyyy): ");
+        string input = Console.ReadLine();
+
+        if (DateTime.TryParseExact(
+                input,
+                "dd/MM/yyyy",
+                null,
+                System.Globalization.DateTimeStyles.None,
+                out selectedDate))
+        {
+            break;
+        }
+
+        Console.WriteLine("❌ Invalid date format.");
+    }
+
+
+    // -----------------------------
+    // Find Pending Orders
+    // -----------------------------
+    List<Order> pendingOrders = new List<Order>();
+    int totalOrders = 0;
+
     foreach (Customer c in customers)
     {
         if (c == null) continue;
 
         foreach (Order o in c.GetOrders())
         {
-            if (o.OrderStatus == "Pending" &&
-                o.DeliveryDateTime.Date == today)
+            totalOrders++;
+
+            bool isPending =
+                string.Equals(o.OrderStatus, "Pending",
+                              StringComparison.OrdinalIgnoreCase);
+
+            bool sameDate =
+                o.DeliveryDateTime.Date == selectedDate.Date;
+
+            if (isPending && sameDate)
             {
-                pendingToday.Add(o);
+                pendingOrders.Add(o);
             }
         }
     }
 
-    // -----------------------------
-    // Display total pending
-    // -----------------------------
-    Console.WriteLine($"Total Pending Orders Today: {pendingToday.Count}");
 
-    if (pendingToday.Count == 0)
+    // -----------------------------
+    // No Orders
+    // -----------------------------
+    if (pendingOrders.Count == 0)
     {
-        Console.WriteLine("No pending orders for today.");
+        Console.WriteLine("\nNo pending orders found for this date.");
         return;
     }
 
+
+    Console.WriteLine($"\nTotal Pending Orders: {pendingOrders.Count}");
+
+
+    // -----------------------------
+    // Process Orders
+    // -----------------------------
     int processed = 0;
     int preparing = 0;
     int rejected = 0;
 
     DateTime now = DateTime.Now;
 
-    // -----------------------------
-    // Process each order
-    // -----------------------------
-    foreach (Order o in pendingToday)
+    foreach (Order o in pendingOrders)
     {
         TimeSpan diff = o.DeliveryDateTime - now;
 
-        // Less than 1 hour → Reject
+        // Less than 1 hour
         if (diff.TotalMinutes < 60)
         {
             o.OrderStatus = "Rejected";
             rejected++;
 
-            Console.WriteLine(
-                $"Order {o.OrderId} → Rejected (Too Late)"
-            );
+            Console.WriteLine($"Order {o.OrderId} -> Rejected (Too Late)");
         }
-        // Otherwise → Preparing
         else
         {
             o.OrderStatus = "Preparing";
             preparing++;
 
-            Console.WriteLine(
-                $"Order {o.OrderId} → Preparing"
-            );
+            Console.WriteLine($"Order {o.OrderId} -> Preparing");
         }
 
         processed++;
     }
 
+
     // -----------------------------
     // Summary
     // -----------------------------
+    double percentage =
+        totalOrders == 0 ? 0 :
+        (double)processed / totalOrders * 100;
+
     Console.WriteLine("\n===== Summary =====");
-    Console.WriteLine($"Orders Processed : {processed}");
+    Console.WriteLine($"Processed Orders : {processed}");
     Console.WriteLine($"Preparing        : {preparing}");
     Console.WriteLine($"Rejected         : {rejected}");
-
-    int totalOrders = 0;
-
-    foreach (Customer c in customers)
-    {
-        if (c == null) continue;
-        totalOrders += c.GetOrders().Count;
-    }
-
-    double percent = 0;
-
-    if (totalOrders > 0)
-    {
-        percent = (double)processed / totalOrders * 100;
-    }
-
-    Console.WriteLine(
-        $"Auto-Processed % : {percent:F2}%"
-    );
-
-    Console.WriteLine("==============================");
+    Console.WriteLine($"Percentage       : {percentage:F2}%");
 }
+
