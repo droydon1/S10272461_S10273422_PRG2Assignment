@@ -1192,3 +1192,62 @@ void BulkProcessPendingOrders()
 
     Console.WriteLine("==============================");
 }
+
+
+
+// Advanced Feature B: Display Total Order Amount per Restaurant - Fan Ming
+void DisplayTotalOrderAmounts()
+{
+    Console.WriteLine("\n===== Total Order Amounts per Restaurant =====\n");
+
+    double grandTotalSales = 0;
+    double grandTotalRefunds = 0;
+    double deliveryFee = 5.00; // per order
+
+    foreach (Restaurant r in restaurants)
+    {
+        double totalSales = 0;
+        double totalRefunds = 0;
+
+        // Loop through all customers and their orders
+        foreach (Customer c in customers)
+        {
+            if (c == null) continue;
+
+            foreach (Order o in c.GetOrders())
+            {
+                if (o.Restaurant.RestaurantId != r.RestaurantId)
+                    continue;
+
+                // Successful delivered orders
+                if (o.OrderStatus == "Delivered")
+                {
+                    totalSales += o.OrderTotal - deliveryFee; // subtract delivery fee
+                }
+
+                // Refunded or cancelled orders
+                if (o.OrderStatus == "Rejected" || o.OrderStatus == "Cancelled")
+                {
+                    totalRefunds += o.OrderTotal;
+                }
+            }
+        }
+
+        grandTotalSales += totalSales;
+        grandTotalRefunds += totalRefunds;
+
+        Console.WriteLine($"Restaurant: {r.RestaurantName} ({r.RestaurantId})");
+        Console.WriteLine($"  Total Sales (after delivery fee): ${totalSales:F2}");
+        Console.WriteLine($"  Total Refunds: ${totalRefunds:F2}");
+        Console.WriteLine();
+    }
+
+    double finalEarnings = grandTotalSales - grandTotalRefunds;
+
+    Console.WriteLine("===== Gruberoo Overall Summary =====");
+    Console.WriteLine($"Total Sales    : ${grandTotalSales:F2}");
+    Console.WriteLine($"Total Refunds  : ${grandTotalRefunds:F2}");
+    Console.WriteLine($"Final Earnings : ${finalEarnings:F2}");
+    Console.WriteLine("==============================\n");
+}
+DisplayTotalOrderAmounts();
