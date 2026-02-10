@@ -13,11 +13,6 @@ Customer[] customers = new Customer[100];
 int customerCount = 0;
 
 
-LoadRestaurants();
-LoadFoodItems();
-LoadCustomers();
-LoadOrders();
-
 Console.WriteLine();
 Console.WriteLine("Welcome to the Gruberoo Food Delivery System");
 Console.WriteLine($"{restaurants.Count} restaurants loaded!");
