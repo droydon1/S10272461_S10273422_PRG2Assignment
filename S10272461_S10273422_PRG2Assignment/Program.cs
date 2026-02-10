@@ -964,3 +964,125 @@ void ModifyOrder()
     // -----------------------------
     Console.WriteLine($"\n✅ Order {selected.OrderId} updated successfully!");
 }
+
+
+// Feature 8: Delete an Existing Order - Fan Ming
+void DeleteOrder()
+{
+    Console.WriteLine("\n===== Delete Order =====");
+
+    // -----------------------------
+    // Get Customer
+    // -----------------------------
+    Customer cust = null;
+
+    while (cust == null)
+    {
+        Console.Write("Enter Customer Email: ");
+        string email = Console.ReadLine().Trim();
+
+        for (int i = 0; i < customerCount; i++)
+        {
+            if (customers[i] != null && customers[i].EmailAddress == email)
+            {
+                cust = customers[i];
+                break;
+            }
+        }
+
+        if (cust == null)
+            Console.WriteLine(" Customer not found. Try again.");
+    }
+
+    // -----------------------------
+    // Show Pending Orders
+    // -----------------------------
+    List<Order> pendingOrders = new List<Order>();
+
+    Console.WriteLine("\nPending Orders:");
+    foreach (Order o in cust.GetOrders())
+    {
+        if (o.OrderStatus == "Pending")
+        {
+            Console.WriteLine(o.OrderId);
+            pendingOrders.Add(o);
+        }
+    }
+
+    if (pendingOrders.Count == 0)
+    {
+        Console.WriteLine("No pending orders to delete.");
+        return;
+    }
+
+    // -----------------------------
+    // Select Order
+    // -----------------------------
+    Order selectedOrder = null;
+
+    while (selectedOrder == null)
+    {
+        Console.Write("Enter Order ID to delete: ");
+        int id;
+
+        if (!int.TryParse(Console.ReadLine(), out id))
+        {
+            Console.WriteLine(" Invalid number. Try again.");
+            continue;
+        }
+
+        foreach (Order o in pendingOrders)
+        {
+            if (o.OrderId == id)
+            {
+                selectedOrder = o;
+                break;
+            }
+        }
+
+        if (selectedOrder == null)
+            Console.WriteLine(" Order not found in pending orders. Try again.");
+    }
+
+    // -----------------------------
+    // Display Order Details
+    // -----------------------------
+    Console.WriteLine($"\nCustomer: {selectedOrder.Customer.CustomerName}");
+    Console.WriteLine("Ordered Items:");
+    foreach (OrderedFoodItem item in selectedOrder.GetOrderedItems())
+    {
+        Console.WriteLine($"{item.ItemName} - {item.QtyOrdered}");
+    }
+    Console.WriteLine($"Delivery date/time: {selectedOrder.DeliveryDateTime:dd/MM/yyyy HH:mm}");
+    Console.WriteLine($"Total Amount: ${selectedOrder.OrderTotal:F2}");
+    Console.WriteLine($"Order Status: {selectedOrder.OrderStatus}");
+
+    // -----------------------------
+    // Confirm Deletion
+    // -----------------------------
+    while (true)
+    {
+        Console.Write("Confirm deletion? [Y/N]: ");
+        string confirm = Console.ReadLine().Trim().ToUpper();
+
+        if (confirm == "Y")
+        {
+            selectedOrder.OrderStatus = "Cancelled";
+
+            // Optionally, add to Refund Stack if you have one
+            // refundStack.Push(selectedOrder);
+
+            Console.WriteLine($" Order {selectedOrder.OrderId} cancelled. Refund of ${selectedOrder.OrderTotal:F2} processed.");
+            break;
+        }
+        else if (confirm == "N")
+        {
+            Console.WriteLine(" Deletion cancelled.");
+            break;
+        }
+        else
+        {
+            Console.WriteLine(" Invalid input. Enter Y or N.");
+        }
+    }
+}
