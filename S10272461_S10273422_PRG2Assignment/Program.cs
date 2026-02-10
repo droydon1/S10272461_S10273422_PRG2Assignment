@@ -12,12 +12,12 @@ List<Menu> restaurantMenus = new List<Menu>();
 Customer[] customers = new Customer[100];
 int customerCount = 0;
 
-
 Console.WriteLine();
 Console.WriteLine("Welcome to the Gruberoo Food Delivery System");
-Console.WriteLine($"{restaurants.Count} restaurants loaded!");
-Console.WriteLine($"{restaurantMenus.Sum(m => m.GetFoodItems().Count)} food items loaded!");
-Console.WriteLine($"{customerCount} customers loaded!");
+LoadRestaurants();
+LoadFoodItems();
+LoadCustomers();
+LoadOrders();
 
 int totalOrders = 0;
 foreach (Customer c in customers)
