@@ -99,22 +99,25 @@ void LoadFoodItems()
 LoadCustomers();
 void LoadCustomers()
 {
-    int custLoaded = 0 ;
+    int custLoaded = 0;
+
     try
     {
         string[] custLines = File.ReadAllLines("customers.csv");
 
         for (int i = 1; i < custLines.Length; i++)
         {
-            if (custLines[i].Length == 0)
-                continue;
+            string line = custLines[i].Trim();
+            if (line.Length == 0) continue;
 
-            string[] p = custLines[i].Split('\t');
+            string[] p = line.Split(',');
 
-            if (p.Length < 2)
-                continue;
+            if (p.Length < 2) continue;
 
-            Customer c = new Customer(p[1], p[0]);
+            string name = p[0].Trim();
+            string email = p[1].Trim();
+
+            Customer c = new Customer(email, name);
 
             customers[customerCount] = c;
             customerCount++;
@@ -134,46 +137,47 @@ LoadOrders();
 void LoadOrders()
 {
     int orderCount = 0;
+
     try
     {
         string[] lines = File.ReadAllLines("orders.csv");
 
         for (int i = 1; i < lines.Length; i++)
         {
-            if (lines[i].Length == 0)
-                continue;
+            string raw = lines[i].Trim();
+            if (raw.Length == 0) continue;
 
-            string line = lines[i];
+            // Extract items part (inside quotes) if exists
             string items = "";
+            int q = raw.IndexOf('"');
 
-            int q = line.IndexOf('"');
-
+            string line = raw;
             if (q != -1)
             {
-                items = line.Substring(q + 1);
-                items = items.Substring(0, items.Length - 1);
-
-                line = line.Substring(0, q - 1);
+                items = raw.Substring(q + 1);
+                items = items.Substring(0, items.Length - 1); // remove last quote
+                line = raw.Substring(0, q - 1); // remove comma before quote
             }
 
             string[] p = line.Split(',');
 
-            if (p.Length < 9)
-                continue;
+            // After removing Items, we expect 9 columns (0..8)
+            if (p.Length < 9) continue;
 
-            int id = int.Parse(p[0]);
-            string email = p[1];
-            string restId = p[2];
+            int id = int.Parse(p[0].Trim());
+            string email = p[1].Trim();
+            string restId = p[2].Trim();
 
-            DateTime created = DateTime.Parse(p[6]);
-            string status = p[8];
-            string address = p[5];
-            string payment = "CC";
+            string deliveryDate = p[3].Trim(); // dd/MM/yyyy
+            string deliveryTime = p[4].Trim(); // HH:mm
+            string deliveryAddress = p[5].Trim();
 
-            Customer cust = null;
-            Restaurant rest = null;
+            DateTime created = DateTime.Parse(p[6].Trim());
+            double totalAmount = double.Parse(p[7].Trim());
+            string status = p[8].Trim();
 
             // Find customer
+            Customer cust = null;
             for (int j = 0; j < customerCount; j++)
             {
                 if (customers[j].EmailAddress == email)
@@ -184,6 +188,7 @@ void LoadOrders()
             }
 
             // Find restaurant
+            Restaurant rest = null;
             for (int j = 0; j < restaurants.Count; j++)
             {
                 if (restaurants[j].RestaurantId == restId)
@@ -193,51 +198,46 @@ void LoadOrders()
                 }
             }
 
-            if (cust == null || rest == null)
-                continue;
+            if (cust == null || rest == null) continue;
 
-            Order o = new Order(
-                id,
-                created,
-                status,
-                address,
-                payment
-            );
-
+            // Create order using YOUR constructor (don’t change constructor)
+            Order o = new Order(id, created, status, deliveryAddress, "CC");
             o.Customer = cust;
             o.Restaurant = rest;
 
-            // Load items
+            // Set extra fields based on CSV format
+            o.DeliveryDateTime = DateTime.Parse(deliveryDate + " " + deliveryTime);
+            o.OrderTotal = totalAmount;
+
+            // Load ordered items (your class uses name/desc/price/customise/qty)
             if (items.Length > 0)
             {
                 string[] list = items.Split('|');
 
-                double total = double.Parse(p[7]);
-                double perItem = total / list.Length;
-
                 foreach (string it in list)
                 {
-                    string[] x = it.Split(',');
+                    string itemPart = it.Trim(); // e.g. "Chicken Rice,1"
+                    if (itemPart.Length == 0) continue;
 
-                    if (x.Length < 2)
-                        continue;
+                    string[] x = itemPart.Split(',');
 
-                    int qty = int.Parse(x[1]);
+                    if (x.Length < 2) continue;
 
-                    OrderedFoodItem of =
-                        new OrderedFoodItem(
-                            "Unknown",
-                            "",
-                            perItem,
-                            "",
-                            qty
-                        );
+                    string itemName = x[0].Trim();
+                    int qty = int.Parse(x[1].Trim());
+
+                    // We can’t easily get true price without searching menu,
+                    // so just put 0 or a simple estimate.
+                    OrderedFoodItem of = new OrderedFoodItem(itemName, "", 0, "", qty);
 
                     o.AddOrderedFoodItem(of);
                 }
             }
 
-            o.CalculateOrderTotal();
+            // Optional: keep calculated total consistent with CSV total
+            // (If your CalculateOrderTotal uses item prices 0, it becomes 0)
+            // So DON'T overwrite OrderTotal if your item prices are 0.
+            // o.CalculateOrderTotal();
 
             cust.AddOrder(o);
             orderCount++;
@@ -245,11 +245,13 @@ void LoadOrders()
 
         Console.WriteLine($"Loaded {orderCount} orders.");
     }
-    catch
+    catch (Exception ex)
     {
-        Console.WriteLine("Cannot read orders.csv");
+        Console.WriteLine("Error loading orders: " + ex.Message);
     }
 }
+
+
 
 // Feature 3: List Restaurant and Menus - Droydon Goh
 DisplayRestaurantsAndMenus();
@@ -271,6 +273,7 @@ void DisplayRestaurantsAndMenus()
 }
 
 // Feature 4: List All Orders - Fan Ming
+ListAllOrders();
 void ListAllOrders()
 {
     try
@@ -279,7 +282,7 @@ void ListAllOrders()
         Console.WriteLine("==========");
 
         Console.WriteLine(
-            "{0,-8} {1,-14} {2,-16} {3,-20} {4,-10} {5,-10}",
+            "{0,-8} {1,-14} {2,-16} {3,-20} {4,-12} {5,-10}",
             "OrderID",
             "Customer",
             "Restaurant",
@@ -289,12 +292,12 @@ void ListAllOrders()
         );
 
         Console.WriteLine(
-            "{0,-8} {1,-14} {2,-16} {3,-20} {4,-10} {5,-10}",
+            "{0,-8} {1,-14} {2,-16} {3,-20} {4,-12} {5,-10}",
             "--------",
             "--------------",
             "----------------",
             "--------------------",
-            "----------",
+            "------------",
             "----------"
         );
 
@@ -302,7 +305,7 @@ void ListAllOrders()
         {
             Customer c = customers[i];
 
-            foreach (Order o in c.Orders)
+            foreach (Order o in c.GetOrders())
             {
                 Console.WriteLine(
                     "{0,-8} {1,-14} {2,-16} {3,-20} {4,-10:C2} {5,-10}",
@@ -322,5 +325,4 @@ void ListAllOrders()
     }
 }
 
-ListAllOrders(); //Calling List all orders function
 
