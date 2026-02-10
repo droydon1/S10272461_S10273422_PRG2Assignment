@@ -25,7 +25,7 @@ foreach (Customer c in customers)
     if (c != null)
         totalOrders += c.GetOrders().Count;
 }
-Console.WriteLine($"{totalOrders} orders loaded!");
+Console.WriteLine($"Loaded {totalOrders} orders.");
 Console.WriteLine();
 
 RunMenu();
@@ -313,7 +313,6 @@ void LoadOrders()
             orderCount++;
         }
 
-        Console.WriteLine($"Loaded {orderCount} orders.");
     }
     catch (Exception ex)
     {
