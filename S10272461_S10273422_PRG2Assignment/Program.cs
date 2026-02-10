@@ -6,12 +6,91 @@
 
 using S10272461_S10273422_PRG2Assignment;
 
-Restaurant[] restaurants = new Restaurant[50];
-int restaurantCount = 0;
-
 Customer[] customers = new Customer[100];
 int customerCount = 0;
 
+List<Restaurant> restaurants = new List<Restaurant>();
+
+// Feature 1: Load Restaurants - Fan Ming
+void LoadRestaurants()
+{
+    try
+    {
+        string[] restLines = File.ReadAllLines("restaurants.csv");
+
+        for (int i = 1; i < restLines.Length; i++) // skip header
+        {
+            try
+            {
+                string[] p = restLines[i].Split(',');
+                string id = p[0];
+                string name = p[1];
+                string email = p[2];
+
+                Restaurant r = new Restaurant(id, name, email);
+
+                // Create one default menu for each restaurant
+                Menu defaultMenu = new Menu("Default", "Default Menu");
+                r.AddMenu(defaultMenu);
+
+                restaurants.Add(r);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing restaurant line {i + 1}: {ex.Message}");
+            }
+        }
+
+        Console.WriteLine($"Loaded {restaurants.Count} restaurants.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error reading restaurants.csv: " + ex.Message);
+    }
+}
+
+// Feature 1: Load Food Items - Fan Ming
+void LoadFoodItems()
+{
+    try
+    {
+        string[] foodLines = File.ReadAllLines("fooditems.csv");
+
+        for (int i = 1; i < foodLines.Length; i++) // skip header
+        {
+            try
+            {
+                string[] p = foodLines[i].Split(',');
+                string restId = p[0];
+                string itemName = p[1];
+                string desc = p[2];
+                double price = Convert.ToDouble(p[3]);
+
+                FoodItem f = new FoodItem(itemName, desc, price, "None"); // simple default customize
+
+                // Find the restaurant and add food item to its first menu
+                for (int j = 0; j < restaurants.Count; j++)
+                {
+                    if (restaurants[j].RestaurantId == restId)
+                    {
+                        restaurants[j].Menus[0].AddFoodItem(f);
+                        break; // found the restaurant, no need to continue loop
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing food item line {i + 1}: {ex.Message}");
+            }
+        }
+
+        Console.WriteLine("Food items loaded and assigned to restaurants.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error reading fooditems.csv: " + ex.Message);
+    }
+}
 
 
 // Feature 2 - Droydon Goh
