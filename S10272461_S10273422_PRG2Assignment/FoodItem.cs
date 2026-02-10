@@ -41,7 +41,7 @@ namespace S10272461_S10273422_PRG2Assignment
 
         private string customize;
 
-        public string Customzie
+        public string Customize
         {
             get { return customize; }
             set { customize = value; }
