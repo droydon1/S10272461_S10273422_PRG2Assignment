@@ -12,9 +12,11 @@ List<Menu> restaurantMenus = new List<Menu>();
 Customer[] customers = new Customer[100];
 int customerCount = 0;
 
+
 // Feature 1: Load Restaurants - Fan Ming
 void LoadRestaurants()
 {
+    int restCount = 0;
     try
     {
         string[] restLines = File.ReadAllLines("restaurants.csv");
@@ -35,21 +37,23 @@ void LoadRestaurants()
 
             restaurants.Add(r);
             restaurantMenus.Add(m);   // SAVE MENU HERE
+            restCount++;
         }
-
-        Console.WriteLine("Restaurants loaded.");
+        
+        Console.WriteLine($"Loaded {restCount} restaurants.");
     }
     catch (Exception ex)
     {
         Console.WriteLine("Error loading restaurants: " + ex.Message);
     }
 }
-
+LoadRestaurants(); //Calling load restaurants function
 
 // Feature 1: Load Food Items - Fan Ming
 LoadFoodItems();
 void LoadFoodItems()
 {
+    int foodCount = 0;
     try
     {
         string[] foodLines = File.ReadAllLines("fooditems.csv");
@@ -77,12 +81,13 @@ void LoadFoodItems()
                 {
                     // Use stored menu
                     restaurantMenus[j].AddFoodItem(f);
+                    foodCount++;
                     break;
                 }
             }
         }
 
-        Console.WriteLine("Food items loaded.");
+        Console.WriteLine($"Loaded {foodCount} food items.");
     }
     catch (Exception ex)
     {
@@ -94,6 +99,7 @@ void LoadFoodItems()
 LoadCustomers();
 void LoadCustomers()
 {
+    int custLoaded = 0 ;
     try
     {
         string[] custLines = File.ReadAllLines("customers.csv");
@@ -112,9 +118,10 @@ void LoadCustomers()
 
             customers[customerCount] = c;
             customerCount++;
+            custLoaded++;
         }
 
-        Console.WriteLine("Customers loaded.");
+        Console.WriteLine($"Loaded {custLoaded} customers.");
     }
     catch (Exception ex)
     {
@@ -126,6 +133,7 @@ void LoadCustomers()
 LoadOrders();
 void LoadOrders()
 {
+    int orderCount = 0;
     try
     {
         string[] lines = File.ReadAllLines("orders.csv");
@@ -232,9 +240,10 @@ void LoadOrders()
             o.CalculateOrderTotal();
 
             cust.AddOrder(o);
+            orderCount++;
         }
 
-        Console.WriteLine("Orders loaded.");
+        Console.WriteLine($"Loaded {orderCount} orders.");
     }
     catch
     {
@@ -260,4 +269,58 @@ void DisplayRestaurantsAndMenus()
         Console.WriteLine();
     }
 }
+
+// Feature 4: List All Orders - Fan Ming
+void ListAllOrders()
+{
+    try
+    {
+        Console.WriteLine("All Orders");
+        Console.WriteLine("==========");
+
+        Console.WriteLine(
+            "{0,-8} {1,-14} {2,-16} {3,-20} {4,-10} {5,-10}",
+            "OrderID",
+            "Customer",
+            "Restaurant",
+            "Delivery Date/Time",
+            "Amount",
+            "Status"
+        );
+
+        Console.WriteLine(
+            "{0,-8} {1,-14} {2,-16} {3,-20} {4,-10} {5,-10}",
+            "--------",
+            "--------------",
+            "----------------",
+            "--------------------",
+            "----------",
+            "----------"
+        );
+
+        for (int i = 0; i < customerCount; i++)
+        {
+            Customer c = customers[i];
+
+            foreach (Order o in c.Orders)
+            {
+                Console.WriteLine(
+                    "{0,-8} {1,-14} {2,-16} {3,-20} {4,-10:C2} {5,-10}",
+                    o.OrderId,
+                    c.CustomerName,
+                    o.Restaurant.RestaurantName,
+                    o.OrderDateTime.ToString("dd/MM/yyyy HH:mm"),
+                    o.CalculateOrderTotal(),
+                    o.OrderStatus
+                );
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error listing orders: " + ex.Message);
+    }
+}
+
+ListAllOrders(); //Calling List all orders function
 
